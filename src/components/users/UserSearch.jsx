@@ -1,0 +1,63 @@
+import { useState, useContext } from "react";
+import GitHubContext from "../../context/github/GithubContext";
+import AlertContext from "../../context/alert/AlertContext";
+import { searchUsers } from "../../context/github/GithubActions";
+
+function UserSearch() {
+  const [text, setText] = useState("");
+
+  const { users, dispatch } = useContext(GitHubContext);
+
+  const { setAlert } = useContext(AlertContext);
+
+  const handleChange = (e) => setText(e.target.value);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (text === "") {
+      setAlert("Please enter something", "error");
+    } else {
+      dispatch({ type: "SET_LOADING" });
+      const users = await searchUsers(text);
+      dispatch({ type: "GET_USERS", payload: users });
+
+      setText("");
+    }
+  };
+
+  return (
+    <div className="grid grid-cols-1 xl:grid-cols-2 lg:grid-cols-2 md:grid-cols-2 mb-8 gap-8">
+      <div>
+        <form onSubmit={handleSubmit} action="">
+          <div className="form-control">
+            <div className="flex">
+              <input
+                type="text"
+                className="input input-lg w-full bg-gray-100 text-black rounded-r-none"
+                placeholder="Search"
+                value={text}
+                onChange={handleChange}
+              />
+              <button type="submit" className="btn btn-lg rounded-l-none w-36">
+                GO
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+      {users.length > 0 && (
+        <div>
+          <button
+            onClick={() => dispatch({ type: "CLEAR_USERS" })}
+            className="btn btn-ghost btn-lg"
+          >
+            Clear
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default UserSearch;
